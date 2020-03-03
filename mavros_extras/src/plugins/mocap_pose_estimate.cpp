@@ -21,6 +21,8 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/TransformStamped.h>
 
+#include <nav_msgs/Odometry.h>
+
 
 namespace mavros {
 namespace extra_plugins{
@@ -58,6 +60,8 @@ public:
 		else {
 			ROS_ERROR_NAMED("mocap", "Use one motion capture source.");
 		}
+		last_send_timestamp = ros::WallTime::now();
+		rs_odom_sub = mp_nh.subscribe("/ukf_predict/odometry", 1, &MocapPoseEstimatePlugin::odom_cb, this);
 	}
 
 	Subscriptions get_subscriptions()
@@ -69,7 +73,10 @@ private:
 	ros::NodeHandle mp_nh;
 
 	ros::Subscriber mocap_pose_sub;
+	ros::Subscriber rs_odom_sub;
 	ros::Subscriber mocap_tf_sub;
+
+	ros::WallTime last_send_timestamp;
 
 	/* -*- low-level send -*- */
 	void mocap_pose_send
@@ -86,6 +93,25 @@ private:
 		pos.z = v.z();
 
 		UAS_FCU(m_uas)->send_message_ignore_drop(pos);
+	}
+
+	void odom_cb(const nav_msgs::Odometry::ConstPtr &msg) {
+		if (std::abs((ros::WallTime::now() - last_send_timestamp).toSec()) < 1.0f/20.0f) {
+			return;
+		}
+		last_send_timestamp = ros::WallTime::now();
+		Eigen::Quaterniond q;;
+		q.w() = msg->pose.pose.orientation.w;
+		q.x() = msg->pose.pose.orientation.x;
+		q.y() = -msg->pose.pose.orientation.y;
+		q.z() = -msg->pose.pose.orientation.z;
+		auto position = Eigen::Vector3d(
+			msg->pose.pose.position.x,
+			-msg->pose.pose.position.y,
+			-msg->pose.pose.position.z);
+		mocap_pose_send(msg->header.stamp.toNSec()/1000,
+			q,
+			position);	
 	}
 
 	/* -*- mid-level helpers -*- */

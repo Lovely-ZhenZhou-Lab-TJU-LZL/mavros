@@ -1,12 +1,22 @@
 plugin_blacklist:
 # common
 - safety_area
+- home_position
+- waypoint
+- param
+- hil
+- sys_time
 # extras
 - image_pub
 - vibration
-- distance_sensor
+#- distance_sensor
 - rangefinder
 - wheel_odometry
+- odom
+- px4flow
+- cam_imu_sync
+- adsb
+- obstacle_distance
 
 
 plugin_whitelist: []

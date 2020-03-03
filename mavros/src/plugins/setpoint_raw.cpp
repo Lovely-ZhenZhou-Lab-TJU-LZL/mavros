@@ -216,7 +216,7 @@ private:
 
 	void attitude_cb(const mavros_msgs::AttitudeTarget::ConstPtr &req)
 	{
-		double thrust_scaling;
+		/* double thrust_scaling;
 		Eigen::Quaterniond desired_orientation;
 		Eigen::Vector3d baselink_angular_rate;
 		Eigen::Vector3d body_rate;
@@ -256,7 +256,22 @@ private:
 					ned_desired_orientation,
 					body_rate,
 					thrust);
-
+*/
+		Eigen::Quaterniond desired_orientation;
+		Eigen::Vector3d baselink_angular_rate;
+		Eigen::Vector3d body_rate;
+		double thrust;
+		
+		thrust = std::min(1.0, std::max(0.0, double(req->thrust)));
+		desired_orientation = ftf::to_eigen(req->orientation);
+		auto ned_desired_orientation = desired_orientation;
+		body_rate = ftf::to_eigen(req->body_rate);
+		set_attitude_target(
+					req->header.stamp.toNSec() / 1000000,
+					req->type_mask,
+					ned_desired_orientation,
+					body_rate,
+					thrust);
 	}
 };
 }	// namespace std_plugins

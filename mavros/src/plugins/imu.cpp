@@ -371,6 +371,7 @@ private:
 		has_hr_imu = true;
 
 		auto header = m_uas->synchronized_header(frame_id, imu_hr.time_usec);
+		header.stamp = ros::Time::now();
 		/** @todo Make more paranoic check of HIGHRES_IMU.fields_updated
 		 */
 
@@ -460,7 +461,7 @@ private:
 
 		auto imu_msg = boost::make_shared<sensor_msgs::Imu>();
 		auto header = m_uas->synchronized_header(frame_id, imu_raw.time_usec);
-
+		header.stamp = ros::Time::now();
 		/** @note APM send SCALED_IMU data as RAW_IMU
 		 */
 		auto gyro_flu = ftf::transform_frame_aircraft_baselink<Eigen::Vector3d>(
@@ -512,6 +513,7 @@ private:
 
 		auto imu_msg = boost::make_shared<sensor_msgs::Imu>();
 		auto header = m_uas->synchronized_header(frame_id, imu_raw.time_boot_ms);
+		header.stamp = ros::Time::now();
 
 		auto gyro_flu = ftf::transform_frame_aircraft_baselink<Eigen::Vector3d>(
 					Eigen::Vector3d(imu_raw.xgyro, imu_raw.ygyro, imu_raw.zgyro) * MILLIRS_TO_RADSEC);
